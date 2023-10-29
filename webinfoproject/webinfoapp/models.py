@@ -1,7 +1,6 @@
 
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.auth.models import AbstractUser
 
 import re
 from django.core.exceptions import ValidationError
@@ -9,25 +8,11 @@ from django.core.exceptions import ValidationError
 class Platform(models.Model):
     name = models.CharField(max_length=100)
 
-    class Meta:
-        permissions = [
-            ("add_platform_model", "Can add platform"),
-            ("change_platform_model", "Can change platform"),
-            ("delete_platform_model", "Can delete platform"),
-        ]
-
     def __str__(self):
         return self.name
 class Product(models.Model):
     name = models.CharField(max_length=100)
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE)
-
-    class Meta:
-        permissions = [
-            ("add_product_model", "Can add product"),
-            ("change_product_model", "Can change product"),
-            ("delete_product_model", "Can delete product"),
-        ]
 
     def __str__(self):
         return self.name
@@ -57,19 +42,11 @@ class Device(models.Model):
             self.product = device.product
         super(Device, self).save(*args, **kwargs)
 
-    class Meta:
-        permissions = [
-            ("add_device_model", "Can add device"),
-            ("change_device_model", "Can change device"),
-            ("delete_device_model", "Can delete device"),
-        ]
-
     def __str__(self):
         return self.name
 
 class Administrator(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-
 
 class Technician(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

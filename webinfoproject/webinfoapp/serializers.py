@@ -32,7 +32,7 @@ class DeviceSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         user = self.context['request'].user
-        if user.is_technician:
+        if not user.is_superuser and user.is_staff:
             data['platform'] = instance.platform.name if instance.platform else None
             data['product'] = instance.product.name if instance.product else None
         return data

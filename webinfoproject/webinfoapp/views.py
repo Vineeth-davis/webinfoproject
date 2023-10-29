@@ -1,50 +1,131 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import Platform,Product,Device
 from .serializers import PlatformSerializer,ProductSerializer,DeviceSerializer
-from .permissions import AdminPlatformPermission, TechnicianPlatformPermission, AdminProductPermission, TechnicianProductPermission, AdminDevicePermission,TechnicianDevicePermission
-from rest_framework import permissions
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+
 
 class PlatformViewSet(viewsets.ModelViewSet):
     queryset = Platform.objects.all()
     serializer_class = PlatformSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
-    @action(detail=False, methods=['POST'], permission_classes=[AdminPlatformPermission])
-    def add_platform(self, request):
-        # This action creates a new platform, which is the same as "add."
-        return super().create(request)
+    def create(self, request, *args, **kwargs):
 
-    @action(detail=True, methods=['PUT'], permission_classes=[AdminPlatformPermission, TechnicianPlatformPermission])
-    def edit_platform(self, request, pk=None):
-        try:
-            platform = self.queryset.get(pk=pk)
-        except Platform.DoesNotExist:
-            return Response({'error': 'Platform not found.'}, status=status.HTTP_404_NOT_FOUND)
+        if request.user.is_superuser:
+            return super().create(request, *args, **kwargs)
+        else:
+            return Response({'error': 'You do not have permission to add a platform.'},
+                            status=status.HTTP_403_FORBIDDEN)
 
-        serializer = PlatformSerializer(platform, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+
+        if request.user.is_superuser or request.user.is_staff:
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'error': 'You do not have permission to edit this platform.'},
+                            status=status.HTTP_403_FORBIDDEN)
 
-    @action(detail=True, methods=['DELETE'], permission_classes=[AdminPlatformPermission])
-    def remove_platform(self, request, pk=None):
-        try:
-            platform = self.queryset.get(pk=pk)
-        except Platform.DoesNotExist:
-            return Response({'error': 'Platform not found.'}, status=status.HTTP_404_NOT_FOUND)
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
 
-        platform.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if request.user.is_superuser:
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({'error': 'You do not have permission to remove this platform.'},
+                            status=status.HTTP_403_FORBIDDEN)
 
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def create(self, request, *args, **kwargs):
+
+        if request.user.is_superuser:
+            return super().create(request, *args, **kwargs)
+        else:
+            return Response({'error': 'You do not have permission to add a Product.'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        if request.user.is_superuser or request.user.is_staff:
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response(serializer.data)
+        else:
+            return Response({'error': 'You do not have permission to edit this Product.'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if request.user.is_superuser:
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({'error': 'You do not have permission to remove this Product.'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+
+class DeviceViewSet(viewsets.ModelViewSet):
+    queryset = Device.objects.all()
+    serializer_class = DeviceSerializer
+
+    def create(self, request, *args, **kwargs):
+
+        if request.user.is_superuser:
+            return super().create(request, *args, **kwargs)
+        else:
+            return Response({'error': 'You do not have permission to add a Device.'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        if request.user.is_superuser:
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response(serializer.data)
+        elif not request.user.is_superuser and request.user.is_staff:
+            request_data = request.data.copy()
+            if 'platform' in request_data:
+                del request_data['platform']
+            if 'product' in request_data:
+                del request_data['product']
+            serializer = self.get_serializer(instance, data=request_data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response(serializer.data)
+        else:
+            return Response({'error': 'You do not have permission to edit this Device.'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if request.user.is_superuser:
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({'error': 'You do not have permission to remove this Device.'},
+                            status=status.HTTP_403_FORBIDDEN)
+'''
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=['POST'], permission_classes=[AdminProductPermission])
     def add_product(self, request):
@@ -77,7 +158,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 class DeviceViewSet(viewsets.ModelViewSet):
     queryset = Device.objects.all()
     serializer_class = DeviceSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=['POST'], permission_classes=[AdminDevicePermission])
     def add_device(self, request):
@@ -106,3 +187,4 @@ class DeviceViewSet(viewsets.ModelViewSet):
 
         device.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+'''

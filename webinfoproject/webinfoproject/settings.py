@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-fba#$5x&vdvc=)l==^n620hrb-#&&d@3ibu33yk(ey83&^2&m1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
 ]
 
 REST_FRAMEWORK = {
