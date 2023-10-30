@@ -7,12 +7,18 @@ from django.core.exceptions import ValidationError
 
 class Platform(models.Model):
     name = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.name
 class Product(models.Model):
     name = models.CharField(max_length=100)
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -34,6 +40,9 @@ class Device(models.Model):
     device_type = models.CharField(max_length=100, null=True, blank=True)
     ip_address = models.CharField(max_length=15, validators=[validate_ip_address], null=True, blank=True)
     username = models.CharField(max_length=100, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if self.pk is not None:
