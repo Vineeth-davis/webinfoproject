@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .models import Platform,Product,Device
 from .serializers import PlatformSerializer,ProductSerializer,DeviceSerializer
-
+from django.shortcuts import render
 
 class PlatformViewSet(viewsets.ModelViewSet):
     queryset = Platform.objects.all()
@@ -11,7 +11,10 @@ class PlatformViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
 
         if request.user.is_superuser:
-            return super().create(request, *args, **kwargs)
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(modified_by=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response({'error': 'You do not have permission to add a platform.'},
                             status=status.HTTP_403_FORBIDDEN)
@@ -24,6 +27,7 @@ class PlatformViewSet(viewsets.ModelViewSet):
         if request.user.is_superuser or request.user.is_staff:
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
             serializer.is_valid(raise_exception=True)
+            serializer.save(modified_by=request.user)
             self.perform_update(serializer)
             return Response(serializer.data)
         else:
@@ -48,6 +52,9 @@ class ProductViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
 
         if request.user.is_superuser:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(modified_by=request.user)
             return super().create(request, *args, **kwargs)
         else:
             return Response({'error': 'You do not have permission to add a Product.'},
@@ -60,6 +67,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         if request.user.is_superuser or request.user.is_staff:
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
             serializer.is_valid(raise_exception=True)
+            serializer.save(modified_by=request.user)
             self.perform_update(serializer)
             return Response(serializer.data)
         else:
@@ -84,6 +92,9 @@ class DeviceViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
 
         if request.user.is_superuser:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(modified_by=request.user)
             return super().create(request, *args, **kwargs)
         else:
             return Response({'error': 'You do not have permission to add a Device.'},
@@ -96,6 +107,7 @@ class DeviceViewSet(viewsets.ModelViewSet):
         if request.user.is_superuser:
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
             serializer.is_valid(raise_exception=True)
+            serializer.save(modified_by=request.user)
             self.perform_update(serializer)
             return Response(serializer.data)
         elif not request.user.is_superuser and request.user.is_staff:
@@ -121,6 +133,10 @@ class DeviceViewSet(viewsets.ModelViewSet):
         else:
             return Response({'error': 'You do not have permission to remove this Device.'},
                             status=status.HTTP_403_FORBIDDEN)
+
+
+def platform_page(request):
+    return render(request, 'static/platforms/platform_page.html')
 '''
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
