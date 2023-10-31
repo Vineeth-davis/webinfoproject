@@ -8,12 +8,40 @@ class PlatformSerializer(serializers.ModelSerializer):
         model = Platform
         fields = '__all__'
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        result = {
+            'id': instance.id,
+            'name': instance.name
+        }
+
+        return result
+
 
 class ProductSerializer(serializers.ModelSerializer):
     modified_by = serializers.StringRelatedField(read_only=True)
+
     class Meta:
         model = Product
         fields = '__all__'
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        result = {
+            'id': instance.id,
+            'platform': {
+                'id': instance.platform.id,
+                'name': instance.platform.name
+            },
+            'name': instance.name,
+            'created_at': instance.created_at,
+            'updated_at': instance.updated_at,
+            'modified_by': instance.modified_by.username
+        }
+
+        return result
 
 '''
 class DeviceSerializer(serializers.ModelSerializer):
@@ -45,6 +73,7 @@ class DeviceSerializer(serializers.ModelSerializer):
 '''
 class DeviceSerializer(serializers.ModelSerializer):
     modified_by = serializers.StringRelatedField(read_only=True)
+
     class Meta:
         model = Device
         fields = '__all__'
@@ -52,10 +81,10 @@ class DeviceSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         user = self.context['request'].user
-        if not user.is_superuser and user.is_staff:
-            # If the user is a technician, include the platform and product data
 
-            data['product'] = {
+        result = {
+            'id': instance.id,
+            'product': {
                 'id': instance.product.id,
                 'platform': {
                     'id': instance.platform.id,
@@ -65,26 +94,11 @@ class DeviceSerializer(serializers.ModelSerializer):
                 'created_at': instance.product.created_at,
                 'updated_at': instance.product.updated_at,
                 'modified_by': instance.product.modified_by
-            }
-            data['platform'] = {
-                'id': instance.platform.id,
-                'name': instance.platform.name
-            }
-        if user.is_superuser:
+            },
+            'name': instance.name,
+            'ipaddress': instance.ip_address,
+            'type': instance.device_type,
+            'username': instance.username
+        }
 
-            data['product'] = {
-                'id': instance.product.id,
-                'platform': {
-                    'id': instance.platform.id,
-                    'name': instance.platform.name
-                },
-                'name': instance.product.name,
-                'created_at': instance.product.created_at,
-                'updated_at': instance.product.updated_at,
-                'modified_by': instance.product.modified_by
-            }
-            data['platform'] = {
-                'id': instance.platform.id,
-                'name': instance.platform.name
-            }
-        return data
+        return result
